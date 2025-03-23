@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCB Defect Detection Results</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            padding: 20px;
+            background-color: #252526;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        h1 {
+            font-size: 2.5em;
+            color: #81a1c1;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .results-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .image-container, .feedback-container, .simulation-container {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: #2d2d2d;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .feedback h2, .simulation-container h2 {
+            font-size: 1.8em;
+            color: #81a1c1;
+            margin-bottom: 10px;
+        }
+        .feedback p {
+            font-size: 1.2em;
+            margin: 10px 0;
+        }
+        .defect-select {
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 1.2em;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #d4d4d4;
+        }
+        .defect-select option {
+            background-color: #2d2d2d;
+            color: #d4d4d4;
+        }
+        .defect-image {
+            display: none; /* Hide all defect images by default */
+        }
+        .defect-image.show {
+            display: block; /* Show the selected defect image */
+        }
+        .similarity-grade {
+            font-size: 1.5em;
+            color: #81a1c1;
+            margin-bottom: 20px;
+        }
+        .highlighted-diff img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .pdf-download, .simulation-container a {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #007acc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .pdf-download:hover, .simulation-container a:hover {
+            background-color: #005f99;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PCB Defect Detection Results</h1>
+        <div class="results-section">
+            <div class="image-container">
+                <div class="similarity-grade">
+                    <p><strong>Similarity:</strong> {{ similarity_percentage }}</p>
+                    <p><strong>Grade:</strong> {{ grade }}</p>
+                </div>
+                <div class="highlighted-diff">
+                    <h2>Highlighted Differences</h2>
+                    <img src="{{ highlighted_diff_url }}" alt="Highlighted Differences">
+                </div>
+                <div class="defect-images">
+                    <div class="defect-image all-defects">
+                        <h2>All Defects</h2>
+                        <img src="{{ image_url }}" alt="All Defects">
+                    </div>
+                    {% for defect_type, defect_image_path in defect_image_paths.items() %}
+                        <div class="defect-image {{ defect_type }}">
+                            <h2>{{ defect_type }} Defects</h2>
+                            <img src="{{ url_for('uploaded_file', filename=defect_image_path.split('/')[-1]) }}" alt="{{ defect_type }} Defects">
+                        </div>
+                    {% endfor %}
+                </div>
+                <select id="defect-select" class="defect-select">
+                    <option value="all">Show All Defects</option>
+                    {% for defect_type in CLASSES %}
+                        <option value="{{ defect_type }}">{{ defect_type }}</option>
+                    {% endfor %}
+                </select>
+                <div class="pdf-download">
+                    <a href="{{ pdf_report_url }}" download="PCB_Defect_Report.pdf">Download PDF Report</a>
+                </div>
+            </div>
+            <div class="feedback-container">
+                <div class="feedback">
+                    <h2>Defect Feedback</h2>
+                    {% for feedback in feedbacks %}
+                        <p>{{ feedback | safe }}</p>
+                    {% endfor %}
+                </div>
+                <br>
+                <a href="/">Upload New Images</a>
+            </div>
+        </div>
+        <div class="simulation-container">
+            <h2>Circuit Simulation</h2>
+            <iframe src="https://www.falstad.com/circuit/circuitjs.html" width="100%" height="500px"></iframe>
+            <p>Simulate the circuit with detected defects.</p>
+            <a href="{{ circuit_file_url }}" download="circuit.txt">Download Circuit File</a>
+        </div>
+    </div>
+    <script>
+        document.getElementById('defect-select').addEventListener('change', function() {
+            const selectedDefect = this.value;
+            const defectImages = document.querySelectorAll('.defect-image');
+
+            defectImages.forEach(image => {
+                if (selectedDefect === 'all' && image.classList.contains('all-defects')) {
+                    image.classList.add('show');
+                } else if (selectedDefect !== 'all' && image.classList.contains(selectedDefect)) {
+                    image.classList.add('show');
+                } else {
+                    image.classList.remove('show');
+                }
+            });
+        });
+
+        // Show the all-defects image by default
+        document.querySelector('.all-defects').classList.add('show');
+    </script>
+</body>
+</html>

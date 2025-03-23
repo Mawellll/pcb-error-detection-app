@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PCB Defect Detection</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            max-width: 800px; 
+            padding: 40px; 
+            background-color: #252526;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            font-size: 1.2em; 
+        }
+        h1 {
+            font-size: 2.5em; 
+            color: #81a1c1;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-top: 20px;
+            font-size: 1.3em; 
+            text-align: left;
+        }
+        input[type="file"] {
+            width: calc(100% - 22px);
+            margin: 15px 0;
+            padding: 15px;
+            font-size: 1.2em; 
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            background-color: #2d2d2d;
+            color: #d4d4d4;
+        }
+        button {
+            padding: 15px 20px;
+            margin-top: 30px;
+            width: 100%;
+            background-color: #007acc;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em; 
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005f99;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload PCB Images</h1>
+        <form method="post" enctype="multipart/form-data">
+            <label for="test_image">Test Image:</label>
+            <input type="file" id="test_image" name="test_image" accept="image/*" required>
+            <label for="temp_image">Template Image:</label>
+            <input type="file" id="temp_image" name="temp_image" accept="image/*" required>
+            <button type="submit">Upload and Detect Defects</button>
+        </form>
+    </div>
+</body>
+</html>
